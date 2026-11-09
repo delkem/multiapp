@@ -43,10 +43,12 @@ import {
   getUISettingsIsVisible,
 } from '../ui/selectors';
 import DockItem from './components/DockItem';
+import DockDivider from './components/DockDivider';
+import * as shortid from 'shortid';
 import KeyboardShortcuts from './components/KeyboardShortcuts';
 import DockIconDragLayer from './DockIconDragLayer';
 import * as dockActions from './duck';
-import { getApplicationsForDock } from './selectors';
+import { getApplicationsForDock, getDockEntries } from './selectors';
 import { isDarwin } from '../utils/process';
 import DockWrapper from './components/DockWrapper';
 import DockTopSection from './components/DockTopSection';
@@ -69,6 +71,10 @@ class DockImpl extends React.PureComponent {
   static propTypes = {
     classes: PropTypes.object.isRequired,
     applications: ImmutablePropTypes.list.isRequired,
+    dockEntries: PropTypes.arrayOf(PropTypes.object).isRequired,
+    addDivider: PropTypes.func.isRequired,
+    renameDivider: PropTypes.func.isRequired,
+    removeDivider: PropTypes.func.isRequired,
     activeApplicationId: PropTypes.string,
     subdockApplicationId: PropTypes.string,
     changeSelectedApp: PropTypes.func.isRequired,
@@ -432,6 +438,20 @@ class DockImpl extends React.PureComponent {
     this.setState({ overIcon: true, applicationId });
   });
 
+  handleAddDividerBelow = (afterItem) => {
+    this.props.addDivider(shortid.generate(), afterItem);
+  };
+
+  handleDockContextMenu = (e) => {
+    // only on the empty area of the dock, not on icons/dividers
+    if (e.target !== e.currentTarget) return;
+    e.preventDefault();
+    const menu = remote.Menu.buildFromTemplate([
+      { label: 'Add Divider', click: () => this.props.addDivider(shortid.generate()) },
+    ]);
+    menu.popup({ window: remote.getCurrentWindow() });
+  };
+
   handleClickDock = () => {
     const { isSettingsVisible, closeSettings } = this.props;
     if (isSettingsVisible) {
@@ -466,7 +486,7 @@ class DockImpl extends React.PureComponent {
 
   render() {
     const {
-      applications, classes, applicationsTabAdded, passwordManagerLinks,
+      dockEntries, renameDivider, removeDivider, classes, applicationsTabAdded, passwordManagerLinks,
       recentItems, highlightedItemId, setHighlightedRecentSubdockItemId,
       isRecentSubdockVisible, cyclingStep,
     } = this.props;
@@ -491,9 +511,26 @@ class DockImpl extends React.PureComponent {
           selectItem={this.handleSelectItem}
         />
 
-        <div className={classNames('l-dock__scroll', 'appcues-dock')}>
+        <div className={classNames('l-dock__scroll', 'appcues-dock')} onContextMenu={this.handleDockContextMenu}>
           {
-            applications.entrySeq().map(([index, application]) => {
+            dockEntries.map((entry) => {
+              const { index } = entry;
+              if (entry.type === 'divider') {
+                return (
+                  <DockDivider
+                    key={entry.key}
+                    item={entry.item}
+                    dividerId={entry.dividerId}
+                    label={entry.label}
+                    index={index}
+                    moveIcon={this.handleMoveIcon}
+                    onRename={renameDivider}
+                    onRemove={removeDivider}
+                    onAddDividerBelow={this.handleAddDividerBelow}
+                  />
+                );
+              }
+              const { application } = entry;
               const manifestURL = getApplicationManifestURL(application);
               const applicationId = getApplicationId(application);
               const passwordManagerLink = passwordManagerLinks.get(applicationId);
@@ -564,6 +601,7 @@ const Dock = compose(
   connect(
     (state) => ({
       applications: getApplicationsForDock(state),
+      dockEntries: getDockEntries(state),
       activeApplicationId: getActiveApplicationId(state),
       highlightedItemId: getUIRecentSubdockHighlightedItemId(state),
       isRecentSubdockVisible: getUIRecentSubdockIsVisible(state),
@@ -582,6 +620,9 @@ const Dock = compose(
       changeSelectedApp,
       ...appActions,
       changeTabPositionIndex: dockActions.changeAppItemPosition,
+      addDivider: dockActions.addDivider,
+      renameDivider: dockActions.renameDivider,
+      removeDivider: dockActions.removeDivider,
       onOverStateChange: (applicationId) => setSubdockApplication(applicationId),
       showRecentSubdock: () => updateUI('recentSubdock', 'isVisible', true),
       hideRecentSubdock: () => updateUI('recentSubdock', 'isVisible', false),

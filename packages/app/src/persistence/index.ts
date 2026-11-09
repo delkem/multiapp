@@ -27,6 +27,9 @@ async function waitForPromise(backend: SingletonStateProxy<any>) {
 export const getInitialState = async (backendKey: string) => {
   await checkSqliteBackend();
   await migrateUmzug();
+  // settings imported from another computer are merged into the DB before the state is loaded
+  const { applyPendingImport } = await import('../settings-sync/apply');
+  await applyPendingImport((backends as Record<string, any>)[backendKey]);
   const state = await waitForPromise((backends as Record<string, any>)[backendKey]);
   return Immutable.Map(state);
 };

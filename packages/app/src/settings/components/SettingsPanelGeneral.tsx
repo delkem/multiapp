@@ -18,6 +18,7 @@ import SettingsOpenSourceInfo from './SettingsOpenSourceInfo';
 import SettingsUpdatesButton from './SettingsUpdatesButton/SettingsUpdatesButton';
 import SettingsHideMainMenu from './SettingsHideMainMenu/SettingsHideMainMenu';
 import SettingsMinimizeToTray from './SettingsMinimizeToTray/SettingsMinimizeToTray';
+import SettingsSync from './SettingsSync';
 import { isDarwin, isWindows } from '../../utils/process';
 
 export interface Classes {
@@ -90,6 +91,8 @@ class SettingsPanelGeneralImpl extends React.PureComponent<Props, {}> {
           onBrowseClick={this.props.clickBrowseDownloadFolder}
           onDownloadLocationClick={this.props.onDownloadLocationClick}
         />
+
+        <SettingsSync />
 
         <SettingsDeveloperTools
           onClickOpenProcessManager={this.props.openProcessManager}

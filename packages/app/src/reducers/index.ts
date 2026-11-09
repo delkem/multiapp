@@ -33,6 +33,7 @@ import theme from '../theme/duck';
 import ui from '../ui/duck';
 import userActivities from '../user-activities/duck';
 import userIdentities from '../user-identities/duck';
+import settingsSync from '../settings-sync/duck';
 import windows from '../windows/duck';
 import { combineAll } from './api';
 
@@ -69,6 +70,7 @@ const rootReducer = combineReducers({
   applicationSettings,
   plugins,
   chromeExtensions,
+  settingsSync,
 });
 
 export default rootReducer;

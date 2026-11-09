@@ -4,6 +4,7 @@ import { getAppBadge } from '../applications/selectors';
 import { getActiveApplicationId } from '../nav/selectors';
 import { changeSelectedAppMain } from '../nav/duck';
 import services from '../services/servicesManager';
+import { isDividerItem } from '../dock/dividers';
 
 
 // upon remove of an app item, make sure that if the item was active
@@ -13,10 +14,11 @@ import services from '../services/servicesManager';
 const observeRemoveActiveAppFromDock = observer(
   null,
   (dispatch, state, previousState) => {
-    const dock = state.get('dock');
-    const prevDock = previousState.get('dock');
+    if (shallowEquals(state.get('dock'), previousState.get('dock'))) { return; }
 
-    if (shallowEquals(dock, prevDock)) { return; }
+    // dividers are not applications: adding/renaming/removing one must not change the active app
+    const dock = state.get('dock').filter(item => !isDividerItem(item));
+    const prevDock = previousState.get('dock').filter(item => !isDividerItem(item));
 
     const removedAppItems = prevDock.filter(appId => !dock.includes(appId));
     if (removedAppItems.size === 0) { return; }

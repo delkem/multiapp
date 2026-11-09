@@ -66,7 +66,7 @@ const dockAppSource = {
   },
 };
 
-const dockAppTarget = {
+export const dockAppTarget = {
   drop: () => ({
     type: 'DND_DOCK',
   }),

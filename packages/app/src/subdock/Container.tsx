@@ -17,6 +17,8 @@ import { attach, detach } from '../subwindows/duck';
 import { closeTab } from '../tabs/duck';
 import { StationState } from '../types';
 import { requestSignInThenAddApplication } from '../user-identities/duck';
+import { addDivider } from '../dock/duck';
+import * as shortid from 'shortid';
 
 import Subdock from './components/Subdock';
 import { Application } from './types';
@@ -60,6 +62,7 @@ export interface OwnProps {
   toggleNotifications: () => void,
   openApplicationPreferences: (application: Application) => void,
   onOpenNewTab: () => void,
+  onAddDividerBelow: () => void,
 }
 
 type Props = OuterProps & OwnProps & GraphQLProps;
@@ -148,6 +151,7 @@ const SubdockContainer = compose(
         openApplicationPreferences: (application: Application) =>
           openApplicationPreferences(application.manifestURL, OpenApplicationPreferencesVia.APP_SUBDOCK),
         onOpenNewTab: () => createNewEmptyTab(ownProps.applicationId, false),
+        onAddDividerBelow: () => addDivider(shortid.generate(), ownProps.applicationId),
         onClickAddNewInstance: (application: Application, identityNeeded?: boolean) => {
           if (identityNeeded) {
             return requestSignInThenAddApplication('google', undefined, application.manifestURL, 'subdock');

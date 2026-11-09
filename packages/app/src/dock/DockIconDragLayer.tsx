@@ -4,6 +4,7 @@ import injectSheet from 'react-jss';
 import { createStyles, ThemeTypes } from '@getstation/theme';
 import { DragLayer } from 'react-dnd';
 import AppDockIcon from './components/ConnectedAppDockIcon';
+import { DividerVisual } from './components/DockDivider';
 
 interface OuterProps {
   onDraggingStateChange?: (isDragging: boolean) => void,
@@ -11,8 +12,10 @@ interface OuterProps {
 interface OwnProps {
   item: {
     applicationId: string,
-    manifestURL: string,
+    manifestURL?: string,
     index: number,
+    isDivider?: boolean,
+    label?: string,
   },
   itemType: string,
   initialOffset: { x: number, y: number },
@@ -106,10 +109,13 @@ class DockIconDragLayer extends React.PureComponent<Props> {
     return (
       <div className={classes.container}>
         <div style={getItemStyles(this.props)}>
-          <AppDockIcon
-            applicationId={item.applicationId}
-            active={true}
-          />
+          {item.isDivider ?
+            <DividerVisual label={item.label || ''} /> :
+            <AppDockIcon
+              applicationId={item.applicationId}
+              active={true}
+            />
+          }
 
           {/* Uncomment for the expanded state */}
           {/*<p className={classes.title}>{item.tabTitle}</p>*/}

@@ -13,6 +13,7 @@ interface OwnProps {
   notificationsEnabled: boolean | undefined, // TODO: Move this in Notifications resolver
   openApplicationPreferences: (application: GetApplicationStateQuery['application']) => void,
   toggleNotifications: () => void,
+  onAddDividerBelow?: () => void,
 }
 
 type Props = OwnProps;
@@ -38,6 +39,7 @@ class SubdockHead extends React.PureComponent<Props, {}> {
       application,
       notificationsEnabled,
       toggleNotifications,
+      onAddDividerBelow,
     } = this.props;
 
     return (
@@ -52,6 +54,14 @@ class SubdockHead extends React.PureComponent<Props, {}> {
         </div>
 
         <div className="l-subdock__actions">
+          {onAddDividerBelow &&
+          <SubdockButton
+            tooltip="Add divider below"
+            size={24}
+            symbolId={IconSymbol.BURGER}
+            onClick={onAddDividerBelow}
+          />
+          }
           <SubdockButton
             tooltip={notificationsEnabled === false ? 'Enable notifications' : 'Disable notifications'}
             size={24}

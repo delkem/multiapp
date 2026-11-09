@@ -28,6 +28,7 @@ interface Props {
   onDetachFavorite: () => any,
   onCloseTab: (tabId: string) => any,
   onOpenNewTab: () => void,
+  onAddDividerBelow?: () => void,
   onClickAddNewInstance: (application: Application, identityNeeded?: boolean) => void,
   openApplicationPreferences: (application: Application) => void,
   toggleNotifications: () => void,
@@ -60,7 +61,7 @@ export default class Subdock extends React.PureComponent<Props, {}> {
       classes, application, onOverStateChange, notificationsEnabled,
       handleHideSubdock, activeTab, onSelectTab, onDetachTab, onAttachTab, onSelectFavorite, onAddTabAsFavorite,
       onRemoveFavorite, onDetachFavorite, onCloseTab, onClickAddNewInstance, onOpenNewTab, openApplicationPreferences,
-      toggleNotifications,
+      toggleNotifications, onAddDividerBelow,
     } = this.props;
 
     const onMouseEnter = () => onOverStateChange(true);
@@ -73,6 +74,7 @@ export default class Subdock extends React.PureComponent<Props, {}> {
           notificationsEnabled={notificationsEnabled}
           openApplicationPreferences={openApplicationPreferences}
           toggleNotifications={toggleNotifications}
+          onAddDividerBelow={onAddDividerBelow}
         />
 
         <div className={classes!.panels}>

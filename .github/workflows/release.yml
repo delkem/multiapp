@@ -3,6 +3,11 @@ on:
   push:
     branches:
       - release
+
+# Publishing installers to GitHub Releases needs write access; the repo default token is read-only.
+permissions:
+  contents: write
+
 jobs:
   Linux:
     runs-on: ubuntu-latest

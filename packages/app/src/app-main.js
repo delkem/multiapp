@@ -6,7 +6,7 @@ import log from 'electron-log';
 import services from './services/servicesManager';
 import { observer } from './services/lib/helpers';
 import { handleError } from './services/api/helpers';
-import { start } from './webui/webUIHandler';
+import { start, handleOnSession } from './webui/webUIHandler';
 import { enhanceSession } from './session';
 
 export default class BrowserXAppMain extends EventEmitter {
@@ -26,6 +26,8 @@ export default class BrowserXAppMain extends EventEmitter {
     });
     app.on('session-created', (session) => {
       enhanceSession(session);
+      // every app partition must serve station:// pages (e.g. the multi-instance configurator)
+      handleOnSession(session);
     })
   }
 

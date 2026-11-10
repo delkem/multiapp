@@ -252,6 +252,12 @@ export class BrowserXMenuManager extends EventEmitter {
             emit('click-item', { event: serializedKeyboardEvent(event), action: 'reset-current-application' });
           },
         },
+        {
+          label: 'Log Memory Usage',
+          click(_menuItem: Electron.MenuItem, _browserWindow: Electron.BrowserWindow, event: Electron.KeyboardEvent) {
+            emit('click-item', { event: serializedKeyboardEvent(event), action: 'log-memory-usage' });
+          },
+        },
       ],
     };
   }
@@ -301,6 +307,12 @@ export class BrowserXMenuManager extends EventEmitter {
           label: 'Reset Current Application',
           click(_menuItem: Electron.MenuItem, _browserWindow: Electron.BrowserWindow, event: Electron.KeyboardEvent) {
             emit('click-item', { event: serializedKeyboardEvent(event), action: 'reset-current-application' });
+          },
+        },
+        {
+          label: 'Log Memory Usage',
+          click(_menuItem: Electron.MenuItem, _browserWindow: Electron.BrowserWindow, event: Electron.KeyboardEvent) {
+            emit('click-item', { event: serializedKeyboardEvent(event), action: 'log-memory-usage' });
           },
         },
       ],

@@ -35,6 +35,7 @@ import { NotificationProps } from './notification-center/types';
 import { TabWebContentsAutoLoginDetailsProviderServiceImpl } from './password-managers/autoLoginProvider';
 import ResourceRouterDispatcher from './resources/ResourceRouterDispatcher';
 import bxSDK from './sdk';
+import { logMemoryUsage } from './memory-report/worker';
 import { handleError } from './services/api/helpers';
 import { observer } from './services/lib/helpers';
 import { ApolloLinkServiceImpl } from './services/services/apollo-link/worker';
@@ -276,6 +277,9 @@ export class BrowserXAppWorker {
         break;
       case 'open-process-manager':
         this.dispatch(openProcessManager());
+        break;
+      case 'log-memory-usage':
+        logMemoryUsage(this.store.getState, this.manifestProvider).catch(handleError());
         break;
       default:
         throw new Error(`No handled menu action: ${action}`);

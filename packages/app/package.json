@@ -30,9 +30,6 @@
     "lint": "yarn run gql-gen && tslint -p .",
     "test": "cross-env NODE_ENV=test jest --runInBand"
   },
-  "bin": {
-    "electron": "./node_modules/.bin/electron"
-  },
   "dependencies": {
     "1password-node": "^3.0.0",
     "@babel/runtime": "^7.4.3",
@@ -65,7 +62,7 @@
     "dom-scroll-into-view": "^1.2.1",
     "dotenv": "^16.0.3",
     "electron-better-web-request": "^1.0.1",
-    "electron-chrome-extension": "https://github.com/viktor44/electron-chrome-extension/releases/download/v7.0.2/release.tar.gz",
+    "electron-chrome-extension": "patch:electron-chrome-extension@https%3A//github.com/viktor44/electron-chrome-extension/releases/download/v7.0.2/release.tar.gz#~/.yarn/patches/electron-chrome-extension-https-c4bf7e1ca2.patch",
     "electron-debug": "^3.2.0",
     "electron-log": "^2.2.14",
     "electron-process-manager": "^1.2.0",

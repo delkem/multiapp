@@ -24,9 +24,6 @@
   "workspaces": [
     "packages/*"
   ],
-  "bin": {
-    "electron": "./node_modules/.bin/electron"
-  },
   "devDependencies": {
     "rimraf": "^5.0.10"
   },

@@ -1,0 +1,39 @@
+diff --git a/lib/browser/chrome-extension.js b/lib/browser/chrome-extension.js
+index f126665ad52d47d6ce534e6c2f1c5901fe811da8..a13e6d1ded793462c3473c7099efe903fbed110c 100755
+--- a/lib/browser/chrome-extension.js
++++ b/lib/browser/chrome-extension.js
+@@ -243,7 +243,7 @@ const getChromeStoragePath = (storageType, extensionId) => {
+ };
+ const isChromeExtension = function (pageURL) {
+     const { protocol } = url.parse(pageURL);
+-    return protocol === 'chrome-extension:';
++    return protocol === `${constants.EXTENSION_PROTOCOL}:`;
+ };
+ const assertChromeExtension = function (contents, api) {
+     const pageURL = contents._getURL();
+diff --git a/lib/common/constants.js b/lib/common/constants.js
+index 1fccf9c06f8748ae43d0003c39a533b791264a38..5651f722dd0e440088bd70cfdcd4d55e6bd1305f 100755
+--- a/lib/common/constants.js
++++ b/lib/common/constants.js
+@@ -43,7 +43,7 @@ Object.keys(constants).forEach(constantKey => {
+     overriddenConstants[constantKey] = `${PREFIX}_${constants[constantKey]}`;
+ });
+ // same. we change the extension protocol used
+-overriddenConstants.EXTENSION_PROTOCOL = 'chrome-extension';
++overriddenConstants.EXTENSION_PROTOCOL = 'station-extension'; // multiapp: see common/index.js
+ overriddenConstants.DEFAULT_EXTENSION_PROTOCOL = 'chrome-extension';
+ // module.exports = constants;
+ module.exports = overriddenConstants;
+diff --git a/lib/common/index.js b/lib/common/index.js
+index 4d13fa6b467eeacd0c7e6d027943d412d8908257..563a2f44e2231c5470732454a88c0cccea365a6a 100755
+--- a/lib/common/index.js
++++ b/lib/common/index.js
+@@ -11,7 +11,7 @@ var Engine;
+ })(Engine = exports.Engine || (exports.Engine = {}));
+ var Protocol;
+ (function (Protocol) {
+-    Protocol["Extension"] = "chrome-extension:";
++    Protocol["Extension"] = "station-extension:"; // multiapp: own scheme so Chromium keeps chrome-extension:// (PDF viewer)
+     Protocol["ExtensionDefault"] = "chrome-extension:";
+     Protocol["Chrome"] = "chrome:";
+ })(Protocol = exports.Protocol || (exports.Protocol = {}));

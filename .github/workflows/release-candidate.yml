@@ -38,6 +38,9 @@ jobs:
         run: yarn release
 
   MacOs:
+    # Disabled: GitHub-hosted macOS arm64 runners were never assigned (capacity), and
+    # there are no Apple signing secrets yet. Remove this line to build macOS again.
+    if: false
     runs-on: macos-latest
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

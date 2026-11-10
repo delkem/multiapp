@@ -2,6 +2,8 @@ appId: org.getstation.DesktopApp
 
 publish:
   provider: 'github'
+  owner: 'delkem'
+  repo: 'multiapp'
 
 asar: true
 # No explicit asarUnpack: an unpack pattern makes app-builder-lib resolve every

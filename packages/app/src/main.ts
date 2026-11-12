@@ -11,6 +11,8 @@ import { BrowserWindowManagerServiceImpl } from './services/services/browser-win
 import services from './services/servicesManager';
 import { getUrlToLoad } from './utils/dev';
 import { isPackaged } from './utils/env';
+import { isWindows } from './utils/process';
+import { readLaunchSettings } from './launch-settings';
 import * as remoteMain from '@electron/remote/main';
 
 bootServices(); // all side effects related to services (in main process)
@@ -120,6 +122,57 @@ const overrideUserDataPath = () => {
   }
 };
 
+/**
+ * Must match `appId` in electron-builder.yml: the NSIS installer tags the
+ * desktop / start menu shortcuts with it, and Windows only groups the running
+ * window under a pinned taskbar shortcut when both carry the same ID.
+ */
+const WINDOWS_APP_USER_MODEL_ID = 'org.getstation.DesktopApp';
+
+const applyAppUserModelId = () => {
+  if (isWindows && isPackaged) {
+    app.setAppUserModelId(WINDOWS_APP_USER_MODEL_ID);
+  }
+};
+
+/**
+ * Show, restore and focus the main window (and any window hidden by
+ * "minimize to tray"), e.g. when the user launches the app again.
+ */
+const bringAppToFront = () => {
+  const workerId = (global as any).worker?.webContentsId;
+  const windows = BrowserWindow.getAllWindows()
+    .filter(w => !w.isDestroyed() && w.webContents.id !== workerId);
+  const mainWindow = windows.find(w => w.webContents.getURL().includes('main.html')) || windows[0];
+  if (!mainWindow) return; // still starting up
+
+  if (!mainWindow.isVisible()) {
+    // hidden by "minimize to tray": bring everything back, like the tray's "Open"
+    windows.slice().reverse().forEach(w => w.show());
+  }
+  if (mainWindow.isMinimized()) mainWindow.restore();
+  mainWindow.focus();
+};
+
+/**
+ * Returns false when another instance already owns the app and this
+ * process is exiting.
+ */
+const setupSingleInstance = (): boolean => {
+  // Always listen: the lock can also be taken at runtime from the settings.
+  app.on('second-instance', () => {
+    if (app.isReady()) bringAppToFront();
+  });
+
+  if (!readLaunchSettings().singleInstance) return true;
+  if (app.requestSingleInstanceLock()) return true;
+
+  log.info('Station is already running, focusing the existing instance');
+  // `exit` rather than `quit`: the electron-app service defers `before-quit`
+  app.exit(0);
+  return false;
+};
+
 const applyLogLevel = () => {
   let logLevel: LevelOption = 'info';
   if (!isPackaged) {
@@ -167,13 +220,17 @@ const init = () => {
 
   app.commandLine.appendSwitch('allow-insecure-localhost');
 
+  // userData first: the single-instance lock and launch settings live there
   overrideUserDataPath();
   applyLogLevel();
+  applyAppUserModelId();
 
   if (process.argv.indexOf('database') !== -1) {
     loadCliWindow('database').catch(console.error);
     return;
   }
+
+  if (!setupSingleInstance()) return;
 
   initWorker();
 

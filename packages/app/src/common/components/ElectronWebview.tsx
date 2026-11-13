@@ -196,13 +196,16 @@ const getRealPropName = (propName: string) => {
   }
 };
 
-const getPropString = (propName: string, value: unknown): string => {
-  const realPropName = getRealPropName(propName);
-  if (typeof value === 'boolean') {
-    return `${realPropName}="${value ? 'on' : 'off'}" `;
-  }
-  return `${realPropName}=${JSON.stringify(String(value))} `;
+/**
+ * Attribute value of a prop. Values are set with `setAttribute`, never
+ * through HTML, so a URL or any other prop cannot inject markup.
+ */
+const getAttributeValue = (value: unknown): string => {
+  if (typeof value === 'boolean') return value ? 'on' : 'off';
+  return String(value);
 };
+
+const isValidAttributeName = (name: string) => /^[a-zA-Z][a-zA-Z0-9-]*$/.test(name);
 
 const removeInitialSrcProp = dissoc('initialSrc');
 
@@ -231,23 +234,27 @@ class ElectronWebview extends React.Component<ElectronWebviewProps, {}> {
   }
 
   componentDidMount() {
-    const container = ReactDOM.findDOMNode(this.ref);
+    const container = ReactDOM.findDOMNode(this.ref) as Element;
 
     const props = this.props as Record<string, any>;
 
-    let propString = '';
+    // All attributes must be set before the webview is attached to the DOM
+    const webview = document.createElement('webview') as Electron.WebviewTag;
     Object.keys(this.props).forEach((propName) => {
       // Waiting for a fix https://github.com/electron/electron/issues/9618
       if (props[propName] !== undefined && typeof props[propName] !== 'function') {
-        propString += getPropString(propName, props[propName]);
+        const attributeName = getRealPropName(propName);
+        if (!isValidAttributeName(attributeName)) return;
+        webview.setAttribute(attributeName, getAttributeValue(props[propName]));
       }
     });
     if (this.props.className) {
-      propString += `class="${this.props.className}" `;
+      webview.setAttribute('class', this.props.className);
     }
-    propString += 'tabindex="-1" ';
-    container.innerHTML = `<webview ${propString}/>`;
-    this.view = container.querySelector('webview') as Electron.WebviewTag;
+    webview.setAttribute('tabindex', '-1');
+    container.textContent = '';
+    container.appendChild(webview);
+    this.view = webview;
 
     this.view.addEventListener('did-finish-load', () => {
       if (!this.loaded) {

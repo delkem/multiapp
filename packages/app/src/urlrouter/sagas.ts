@@ -5,6 +5,7 @@ import { all, call, delay, fork, getContext, put, race, select, take } from 'red
 import { getApplicationManifestURL } from '../applications/get';
 import { listAllApplications, manifestToApplicationItem } from '../../manifests';
 import { logger } from '../api/logger';
+import { openExternalSafely } from '../lib/url-safety';
 import { BrowserXAppWorker } from '../app-worker';
 import {
   createNewTab,
@@ -113,14 +114,14 @@ function* triggerCorrespondingAction(
       break;
     case URLRouterAction.DEFAULT_BROWSER:
       if (!options || !options.loadInBackground) {
-        remote.shell.openExternal(url)
+        openExternalSafely(url, u => remote.shell.openExternal(u));
       }
       else {
         services.browserWindow.getFocusedWindow()
           .then(lastFocusedWindow => {
             if (lastFocusedWindow) {
               lastFocusedWindow.setAlwaysOnTop(true)
-                .then(() => remote.shell.openExternal(url)
+                .then(() => openExternalSafely(url, u => remote.shell.openExternal(u))
                   .then(() => setTimeout(() => {
                       lastFocusedWindow.show();
                       lastFocusedWindow.setAlwaysOnTop(false);
@@ -131,7 +132,7 @@ function* triggerCorrespondingAction(
             }
             else {
               log.info('Focused window is empty');
-              remote.shell.openExternal(url);
+              openExternalSafely(url, u => remote.shell.openExternal(u));
             }
           });
       }

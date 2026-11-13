@@ -5,6 +5,7 @@ import { join } from 'path';
 import { BxAppManifest } from '../src/applications/manifest-provider/bxAppManifest';
 import { PrivateApplicationRequest } from '../src/plugins/bxapi';
 import { Manifest } from './index';
+import { validatePrivateApplicationRequest } from './validate-private';
 
 export type BxAppManifestWithId = BxAppManifest & { id: number };
 
@@ -29,6 +30,7 @@ function readOnInit() {
 }
 
 export function saveNewApplication(payload: PrivateApplicationRequest) {
+  validatePrivateApplicationRequest(payload);
   highestId += 1;
   const manifest: BxAppManifestWithId = {
     name: payload.name,

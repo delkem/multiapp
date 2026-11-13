@@ -9,6 +9,7 @@ import {
 } from 'electron';
 import { EventEmitter } from 'events';
 import { isPackaged } from './utils/env';
+import { openExternalSafely } from './lib/url-safety';
 import { serializedKeyboardEvent } from './services/services/menu/helpers';
 import uuid = require('uuid');
 
@@ -161,7 +162,7 @@ export default class ContextMenu extends EventEmitter {
           id: 'openLinkInDefaultBrowser',
           label: 'Open Link In Default Browser',
           click() {
-            shell.openExternal(props.linkURL);
+            openExternalSafely(props.linkURL, u => shell.openExternal(u));
           },
         },
         {

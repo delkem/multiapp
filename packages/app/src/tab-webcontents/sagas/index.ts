@@ -1,3 +1,4 @@
+import log from 'electron-log';
 import { SagaIterator } from 'redux-saga';
 import { all, call, delay, getContext, put, race, select, spawn, take } from 'redux-saga/effects';
 import { BrowserXAppWorker } from '../../app-worker';
@@ -16,6 +17,7 @@ import { getFrontActiveTabId } from '../../applications/utils';
 import { MARK_AS_DONE } from '../../onboarding/duck';
 import { isDone } from '../../onboarding/selectors';
 import { sendToWebContents } from '../../lib/ipc-send-to';
+import { isWebURL } from '../../lib/url-safety';
 import { closeTab, updateBackForwardState, updateLastActivity, updateTabURL } from '../../tabs/duck';
 import { getTabApplicationId, getTabId } from '../../tabs/get';
 import { getTabs } from '../../tabs/selectors';
@@ -228,15 +230,16 @@ function* pushUrlOnTabWebcontentsThenNavigate({ tabId, url }: ChangeHashAndNavig
   const twcs = yield select(getTabWebcontents);
   const twc = twcs.get(tabId);
 
-  if (!twc) {
+  if (!isWebURL(url)) {
+    // e.g. a `javascript:` link would run in the tab's page
+    log.warn(`[tab-webcontents] refused to navigate tab ${tabId} to a non web URL`);
+  } else if (!twc) {
     // webContents not loaded, so we can just update the tab's URL, then it will load when we'll navigate to it
     yield put(updateTabURL(tabId, url));
   } else {
     // new url differs only from hash
-
-    const code = `
-      document.location.href = '${url.replace('\'', '\\\'')}';
-    `;
+    // `JSON.stringify` gives a JS string literal the URL cannot break out of
+    const code = `document.location.href = ${JSON.stringify(url)};`;
     yield callService('tabWebContents', 'executeJavaScript', getWebcontentsId(twc), code);
   }
   yield put(navigateToApplicationTabAutomatically(tabId));

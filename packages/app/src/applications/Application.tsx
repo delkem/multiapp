@@ -44,7 +44,6 @@ import {
 import { getTabWebcontentsById, getWebcontentsAuthInfo, getWebcontentsAuthState } from '../tab-webcontents/selectors';
 import { updateLoadingState, updateTabBadge, updateTabFavicons, updateTabTitle, updateTabURL } from '../tabs/duck';
 // @ts-ignore no declaration file
-import { disableSslCertVerification } from '../app/duck';
 import { getTabId, getTabLoadingState } from '../tabs/get';
 import { StationTabImmutable } from '../tabs/types';
 import { RecursiveImmutableMap, StationState } from '../types';
@@ -148,7 +147,6 @@ export interface DispatchProps {
   onChooseAccount: Function,
   onApplicationRemoved: Function,
   updateResetAppModal: Function,
-  disableSslCertVerification: (partition: string) => any,
 }
 
 export interface ComputedProps {
@@ -417,20 +415,13 @@ class ApplicationImpl extends React.PureComponent {
     const tabUrl = tab.get('url', '');
     const {
       applicationId, applicationName, applicationIcon,
-      appstoreApplicationId, themeColor, manifestURL,
+      themeColor, manifestURL,
       askResetApplication, onChooseAccount,
       crashed, errorCode, errorDescription,
       canGoBack, themeGradient, email,
       promptBasicAuth, performBasicAuth, basicAuthInfo,
       useDefaultSession,
     } = this.props;
-
-    const partition = useDefaultSession ? '' : `persist:${applicationId}`;
-
-    // disable SSL check for private applications
-    if (!useDefaultSession && Number(appstoreApplicationId) > 1000000) {
-      this.props.disableSslCertVerification(partition);
-    }
 
     return (
       <div>
@@ -571,7 +562,6 @@ const Application = compose(
           onChooseAccount: (identityId) => setConfigData(applicationId, { identityId }),
           onApplicationRemoved: uninstallApplication,
           updateResetAppModal: (appFocus) => updateUI('confirmResetApplicationModal', 'isVisible', appFocus),
-          disableSslCertVerification: disableSslCertVerification,
         },
         dispatch
       );

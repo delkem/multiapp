@@ -1,5 +1,6 @@
 import { app, BrowserWindow, shell, WebContents, HandlerDetails } from 'electron';
 
+import { openExternalSafely } from '../../../lib/url-safety';
 import { isDarwin } from '../../../utils/process';
 import { RPC } from '../../lib/types';
 import { BrowserWindowManagerService, BrowserWindowServiceConstructorOptions, BrowserWindowManagerProviderService } from './interface';
@@ -31,7 +32,7 @@ export class BrowserWindowManagerServiceImpl extends BrowserWindowManagerService
     app.on('browser-window-created', (_e, bw) => {
       bw.on('closed', closeAppIfAllWindowsClosed);
       bw.webContents.setWindowOpenHandler((details: HandlerDetails) => {
-        shell.openExternal(details.url);
+        openExternalSafely(details.url, u => shell.openExternal(u));
         return { action: 'deny' };
       });
     });

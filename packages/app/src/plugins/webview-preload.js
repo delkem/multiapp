@@ -16,8 +16,29 @@
     return p;
   };
 
+  /**
+   * Never hand the IPC event to the page: through the context bridge its
+   * `sender` would give the page the whole `ipcRenderer`. Listeners get an
+   * empty object in its place, so their `(_event, ...args)` signature is kept.
+   */
+  const wrappedListeners = new Map();
+  const onIpc = (channel, listener) => {
+    const wrapped = (_event, ...args) => listener({}, ...args);
+    if (!wrappedListeners.has(listener)) wrappedListeners.set(listener, new Map());
+    wrappedListeners.get(listener).set(channel, wrapped);
+    ipcRenderer.on(channel, wrapped);
+  };
+  const offIpc = (channel, listener) => {
+    const byChannel = wrappedListeners.get(listener);
+    const wrapped = byChannel && byChannel.get(channel);
+    if (!wrapped) return;
+    ipcRenderer.off(channel, wrapped);
+    byChannel.delete(channel);
+    if (byChannel.size === 0) wrappedListeners.delete(listener);
+  };
+
   const addListenerToChannel = (channel, listener) => {
-    ipcRenderer.on(`bx-api-subscribe-response-${channel}`, listener);
+    onIpc(`bx-api-subscribe-response-${channel}`, listener);
     setTimeout(() => {
       ipcRenderer.invoke('get-worker-contents-id')
           .then(workerWebContentsId =>
@@ -26,7 +47,7 @@
   };
 
   const removeListenerToChannel = (channel, listener) => {
-    ipcRenderer.off(`bx-api-subscribe-response-${channel}`, listener);
+    offIpc(`bx-api-subscribe-response-${channel}`, listener);
   }
 
   class BxAPI {
@@ -60,9 +81,19 @@
         sendNotification: (id, notification) => ipcRenderer.send('new-notification', id, notification),
         closeNotification: (id) => ipcRenderer.send('notification-close', id),
 
-        addNotificationClickListener: (listener) => ipcRenderer.on('trigger-notification-click', listener),
-        removeNotificationClickListener: (listener) => ipcRenderer.off('trigger-notification-click', listener),
+        addNotificationClickListener: (listener) => onIpc('trigger-notification-click', listener),
+        removeNotificationClickListener: (listener) => offIpc('trigger-notification-click', listener),
     },
+  };
+
+  // Station's own pages (app store, multi-instance configurator) are served on
+  // the `station:` protocol. Only they get the privileged APIs: installing or
+  // removing apps, signing in, reading identities. Any other website only gets
+  // the notifications API. The main process enforces the same rule, see
+  // `lib/ipc-send-to.ts`.
+  const isStationPage = window.location.protocol === 'station:';
+
+  const privilegedBxApi = {
     applications: {
       install: (payload) => BxAPI.perform(
         'InstallApplication',
@@ -125,6 +156,6 @@
      }
     };
 
-    contextBridge.exposeInMainWorld('bxApi', bxApi);
+    contextBridge.exposeInMainWorld('bxApi', isStationPage ? { ...bxApi, ...privilegedBxApi } : bxApi);
 
     console.log('>>>> contextBridge done')

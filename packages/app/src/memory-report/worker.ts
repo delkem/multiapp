@@ -1,13 +1,12 @@
 import log from 'electron-log';
 import { getManifestOrTimeout } from '../applications/api';
 import { IManifestProvider } from '../applications/manifest-provider/types';
-import { getApplicationDescription, getApplications } from '../applications/selectors';
+import { getApplicationById, getApplicationDescription, getApplications } from '../applications/selectors';
 import { getApplicationId, getApplicationManifestURL } from '../applications/get';
 import services from '../services/servicesManager';
-import { getTabWebcontentsByWebContentsId, getWebcontentsTabId } from '../tab-webcontents/selectors';
-import { getApplicationByTabId } from '../tabs/selectors';
 import { StationState } from '../types';
 import { buildMemoryReport, Owner } from './report';
+import { getWebContentsApplicationId } from './usage';
 
 const hostOf = (url: string) => {
   try {
@@ -36,11 +35,9 @@ export async function logMemoryUsage(getState: () => StationState, manifestProvi
   }));
 
   const report = buildMemoryReport(snapshot, (wc): Owner => {
-    const twc = getTabWebcontentsByWebContentsId(state, wc.webContentsId);
-    const tabId = twc && getWebcontentsTabId(twc);
-    const application = tabId ? getApplicationByTabId(state, tabId) : null;
-    if (application) {
-      const applicationId = getApplicationId(application);
+    const applicationId = getWebContentsApplicationId(state, wc);
+    const application = applicationId ? getApplicationById(state, applicationId) : null;
+    if (applicationId && application) {
       const name = names.get(applicationId) || `App ${applicationId}`;
       const description = getApplicationDescription(state, application);
       return { key: `app:${applicationId}`, label: description ? `${name} (${description})` : name };

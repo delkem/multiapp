@@ -5,11 +5,13 @@ import { oc } from 'ts-optchain';
 import {
   GetApplicationStateQuery,
 } from '../../applications/queries@local.gql.generated';
+import { ApplicationMemoryUsage } from '../../memory-report/components/MemoryUsage';
 
 import SubdockButton from './SubdockButton';
 
 interface OwnProps {
   application: GetApplicationStateQuery['application'],
+  applicationId: string,
   notificationsEnabled: boolean | undefined, // TODO: Move this in Notifications resolver
   openApplicationPreferences: (application: GetApplicationStateQuery['application']) => void,
   toggleNotifications: () => void,
@@ -51,6 +53,8 @@ class SubdockHead extends React.PureComponent<Props, {}> {
           {application && this.getApplicationDescription() &&
           <small>{this.getApplicationDescription()}</small>
           }
+
+          <ApplicationMemoryUsage applicationId={this.props.applicationId} />
         </div>
 
         <div className="l-subdock__actions">

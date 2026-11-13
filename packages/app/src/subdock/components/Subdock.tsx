@@ -71,6 +71,7 @@ export default class Subdock extends React.PureComponent<Props, {}> {
       <div className={classes!.container} onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
         <SubdockHead
           application={application}
+          applicationId={this.props.applicationId}
           notificationsEnabled={notificationsEnabled}
           openApplicationPreferences={openApplicationPreferences}
           toggleNotifications={toggleNotifications}

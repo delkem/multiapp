@@ -56,6 +56,7 @@ import { getIsApplicationInstanceLogoInDock } from '../application-settings/sele
 import { logger } from '../api/logger';
 import { changeSelectedApp } from '../applications/duck';
 import { OnApplicationInstalled } from './OnApplicationInstalled';
+import { DockMemoryUsage } from '../memory-report/components/MemoryUsage';
 
 const styles = () => ({
   bottomSection: {
@@ -572,6 +573,7 @@ class DockImpl extends React.PureComponent {
           <AppStore />
           <FocusModeDockContainer />
           <NotificationCenter />
+          <DockMemoryUsage onClick={this.props.openProcessManager} />
         </div>
 
         <KeyboardShortcuts
